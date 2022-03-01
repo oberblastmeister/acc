@@ -34,8 +34,8 @@ library
   exposed-modules:
     Acc
     Acc.NeAcc
+    Acc.NeAcc.Internal
   other-modules:
-    Acc.NeAcc.Def
     Acc.Prelude
   build-depends:
     base >=4.13 && <5,

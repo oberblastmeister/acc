@@ -7,12 +7,13 @@ module Acc
     toNonEmpty,
     toNeAcc,
     enumFromTo,
+    null,
   )
 where
 
 import qualified Acc.NeAcc as NeAcc
-import qualified Acc.NeAcc.Def as NeAcc
-import Acc.Prelude hiding (enumFromTo, toNonEmpty)
+import qualified Acc.NeAcc.Internal as NeAcc
+import Acc.Prelude hiding (enumFromTo, null, toNonEmpty)
 import qualified Data.Foldable as Foldable
 import qualified Data.Semigroup.Foldable as Foldable1
 
@@ -168,6 +169,11 @@ instance IsList (Acc a) where
 instance Show a => Show (Acc a) where
   show =
     show . toList
+
+{-# INLINE null #-}
+null :: Acc a -> Bool
+null EmptyAcc = True
+null _ = False
 
 -- |
 -- Prepend an element.

@@ -1,6 +1,8 @@
-module Acc.NeAcc.Def
+module Acc.NeAcc.Internal
   ( NeAcc (..),
     foldM,
+    foldlM,
+    foldrM,
     prependReverseList,
     uncons,
     unconsTo,
@@ -10,8 +12,8 @@ module Acc.NeAcc.Def
   )
 where
 
-import Acc.Prelude hiding (foldM)
-import qualified Acc.Prelude as Prelude
+import Acc.Prelude hiding (foldM, foldlM, foldrM)
+import qualified Acc.Prelude as Prelude hiding (foldlM, foldrM)
 
 -- |
 -- Non-empty accumulator.
@@ -243,8 +245,13 @@ rebalancingLeft l r cont =
     Leaf a ->
       cont a r
 
+{-# INLINE foldM #-}
 foldM :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> m a
-foldM step !acc =
+foldM = foldlM
+
+{-# INLINE foldlM #-}
+foldlM :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> m a
+foldlM step !acc =
   \case
     Branch a b -> foldMOnBranch step acc a b
     Leaf a -> step acc a
@@ -252,9 +259,23 @@ foldM step !acc =
     foldMOnBranch :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> NeAcc b -> m a
     foldMOnBranch step acc a b =
       case a of
-        Leaf c -> step acc c >>= \acc' -> foldM step acc' b
+        Leaf c -> step acc c >>= \acc' -> foldlM step acc' b
         Branch c d -> foldMOnBranch step acc c (Branch d b)
 
+{-# INLINE foldrM #-}
+foldrM :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> m a
+foldrM step !acc =
+  \case
+    Branch a b -> foldMOnBranch step acc a b
+    Leaf a -> step acc a
+  where
+    foldMOnBranch :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> NeAcc b -> m a
+    foldMOnBranch step acc a b =
+      case b of
+        Leaf c -> step acc c >>= \acc' -> foldlM step acc' b
+        Branch c d -> foldMOnBranch step acc d (Branch b c)
+
+{-# INLINE prependReverseList #-}
 prependReverseList :: [a] -> NeAcc a -> NeAcc a
 prependReverseList list tree =
   case list of
@@ -279,6 +300,7 @@ unconsTo buff =
     Leaf a ->
       (a, buff)
 
+{-# INLINE unsnoc #-}
 unsnoc :: NeAcc a -> (a, Maybe (NeAcc a))
 unsnoc =
   \case
@@ -287,6 +309,7 @@ unsnoc =
     Leaf a ->
       (a, Nothing)
 
+{-# INLINE unsnocTo #-}
 unsnocTo :: NeAcc a -> NeAcc a -> (a, NeAcc a)
 unsnocTo buff =
   \case
@@ -295,6 +318,7 @@ unsnocTo buff =
     Leaf a ->
       (a, buff)
 
+{-# INLINE appendEnumFromTo #-}
 appendEnumFromTo :: (Enum a, Ord a) => a -> a -> NeAcc a -> NeAcc a
 appendEnumFromTo from to =
   if from <= to
