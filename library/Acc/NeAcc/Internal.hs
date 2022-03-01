@@ -251,29 +251,29 @@ foldM = foldlM
 
 {-# INLINE foldlM #-}
 foldlM :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> m a
-foldlM step !acc =
+foldlM step acc =
   \case
-    Branch a b -> foldMOnBranch step acc a b
+    Branch a b -> foldlMOnBranch step acc a b
     Leaf a -> step acc a
   where
-    foldMOnBranch :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> NeAcc b -> m a
-    foldMOnBranch step acc a b =
+    foldlMOnBranch :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> NeAcc b -> m a
+    foldlMOnBranch step acc a b =
       case a of
-        Leaf c -> step acc c >>= \acc' -> foldlM step acc' b
-        Branch c d -> foldMOnBranch step acc c (Branch d b)
+        Leaf c -> step acc c >>= \(!acc') -> foldlM step acc' b
+        Branch c d -> foldlMOnBranch step acc c (Branch d b)
 
 {-# INLINE foldrM #-}
 foldrM :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> m a
-foldrM step !acc =
+foldrM step acc =
   \case
-    Branch a b -> foldMOnBranch step acc a b
+    Branch a b -> foldrMOnBranch step acc a b
     Leaf a -> step acc a
   where
-    foldMOnBranch :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> NeAcc b -> m a
-    foldMOnBranch step acc a b =
+    foldrMOnBranch :: Monad m => (a -> b -> m a) -> a -> NeAcc b -> NeAcc b -> m a
+    foldrMOnBranch step acc a b =
       case b of
-        Leaf c -> step acc c >>= \acc' -> foldlM step acc' b
-        Branch c d -> foldMOnBranch step acc d (Branch b c)
+        Leaf c -> step acc c >>= \(!acc') -> foldrM step acc' a
+        Branch c d -> foldrMOnBranch step acc (Branch a c) d
 
 {-# INLINE prependReverseList #-}
 prependReverseList :: [a] -> NeAcc a -> NeAcc a

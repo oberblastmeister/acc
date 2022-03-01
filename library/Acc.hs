@@ -8,12 +8,15 @@ module Acc
     toNeAcc,
     enumFromTo,
     null,
+    foldlM,
+    foldrM,
+    foldM,
   )
 where
 
 import qualified Acc.NeAcc as NeAcc
 import qualified Acc.NeAcc.Internal as NeAcc
-import Acc.Prelude hiding (enumFromTo, null, toNonEmpty)
+import Acc.Prelude hiding (enumFromTo, foldM, foldlM, foldrM, null, toNonEmpty)
 import qualified Data.Foldable as Foldable
 import qualified Data.Semigroup.Foldable as Foldable1
 
@@ -174,6 +177,22 @@ instance Show a => Show (Acc a) where
 null :: Acc a -> Bool
 null EmptyAcc = True
 null _ = False
+
+{-# INLINE foldM #-}
+foldM :: Monad m => (a -> b -> m a) -> a -> Acc b -> m a
+foldM = foldlM
+
+{-# INLINE foldlM #-}
+foldlM :: Monad m => (a -> b -> m a) -> a -> Acc b -> m a
+foldlM step acc = \case
+  EmptyAcc -> pure acc
+  TreeAcc tree -> NeAcc.foldlM step acc tree
+
+{-# INLINE foldrM #-}
+foldrM :: Monad m => (a -> b -> m a) -> a -> Acc b -> m a
+foldrM step acc = \case
+  EmptyAcc -> pure acc
+  TreeAcc tree -> NeAcc.foldrM step acc tree
 
 -- |
 -- Prepend an element.
