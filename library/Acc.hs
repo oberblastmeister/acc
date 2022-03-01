@@ -189,7 +189,7 @@ foldlM step acc = \case
   TreeAcc tree -> NeAcc.foldlM step acc tree
 
 {-# INLINE foldrM #-}
-foldrM :: Monad m => (a -> b -> m a) -> a -> Acc b -> m a
+foldrM :: Monad m => (b -> a -> m a) -> a -> Acc b -> m a
 foldrM step acc = \case
   EmptyAcc -> pure acc
   TreeAcc tree -> NeAcc.foldrM step acc tree
